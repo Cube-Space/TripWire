@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import net.cubespace.TripWire.Protocol.Packets.SubPackets.Slot;
 
 @Data
 @NoArgsConstructor
@@ -13,20 +14,22 @@ import lombok.NoArgsConstructor;
 public class EntityEquipment extends DefinedPacket {
     private int entityId;
     private short slot;
-    private byte[] itemData;
+    private Slot itemData;
 
     @Override
     public void read(ByteBuf buf) {
         entityId = buf.readInt();
         slot = buf.readShort();
-        itemData = buf.readBytes(buf.readableBytes()).array();
+
+        itemData = new Slot();
+        itemData.read(buf);
     }
 
     @Override
     public void write(ByteBuf buf) {
         buf.writeInt(entityId);
         buf.writeShort(slot);
-        buf.writeBytes(itemData);
+        itemData.write(buf);
     }
 }
 

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import net.cubespace.TripWire.Protocol.Packets.SubPackets.MetaData;
+import net.cubespace.TripWire.Protocol.Packets.SubPackets.Vector;
 
 @Data
 @NoArgsConstructor
@@ -14,9 +15,7 @@ import net.cubespace.TripWire.Protocol.Packets.SubPackets.MetaData;
 public class SpawnMob extends DefinedPacket {
     private int entityId;
     private int mobId;
-    private int x;
-    private int y;
-    private int z;
+    private Vector vector;
     private byte pitch;
     private byte headPitch;
     private byte yaw;
@@ -29,9 +28,8 @@ public class SpawnMob extends DefinedPacket {
     public void read(ByteBuf buf) {
         entityId = readVarInt(buf);
         mobId = buf.readUnsignedByte();
-        x = buf.readInt();
-        y = buf.readInt();
-        z = buf.readInt();
+        vector = new Vector();
+        vector.read(buf);
         pitch = buf.readByte();
         headPitch = buf.readByte();
         yaw = buf.readByte();
@@ -47,9 +45,7 @@ public class SpawnMob extends DefinedPacket {
     public void write(ByteBuf buf) {
         writeVarInt(entityId, buf);
         buf.writeByte(mobId);
-        buf.writeInt(x);
-        buf.writeInt(y);
-        buf.writeInt(z);
+        vector.write(buf);
         buf.writeByte(pitch);
         buf.writeByte(headPitch);
         buf.writeByte(yaw);

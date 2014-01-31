@@ -11,18 +11,27 @@ import net.cubespace.TripWire.Protocol.Packets.SubPackets.Vector;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class SpawnPosition extends DefinedPacket {
+public class SoundEffect extends DefinedPacket {
+    private String sound;
     private Vector vector;
+    private float volume;
+    private int pitch;
 
     @Override
     public void read(ByteBuf buf) {
+        sound = readString(buf);
         vector = new Vector();
         vector.read(buf);
+        volume = buf.readFloat();
+        pitch = buf.readUnsignedByte();
     }
 
     @Override
     public void write(ByteBuf buf) {
+        writeString(sound, buf);
         vector.write(buf);
+        buf.writeFloat(volume);
+        buf.writeByte(pitch);
     }
 }
 

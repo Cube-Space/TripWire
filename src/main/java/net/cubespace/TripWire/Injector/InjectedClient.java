@@ -3,17 +3,23 @@ package net.cubespace.TripWire.Injector;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandler;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
+import io.netty.handler.timeout.ReadTimeoutException;
 import net.cubespace.TripWire.Protocol.Packets.DefinedPacket;
 import net.cubespace.TripWire.Protocol.Protocol;
 import net.cubespace.TripWire.TripWirePlugin;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.netty.PipelineUtils;
 import net.md_5.bungee.protocol.BadPacketException;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * @author geNAZt (fabian.fassbender42@googlemail.com)
@@ -30,8 +36,27 @@ public class InjectedClient extends ByteToMessageDecoder {
     private ByteToMessageDecoder decoder;
     private MessageToByteEncoder<DefinedPacket> encoder;
 
+    final ChannelInboundHandler exceptionHandler = new ChannelInboundHandlerAdapter() {
+        @Override
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+            if (ctx.channel().isActive()) {
+                if (cause instanceof ReadTimeoutException) {
+                    ProxyServer.getInstance().getLogger().log(Level.WARNING, " - read timed out");
+                } else if (cause instanceof BadPacketException) {
+                    ProxyServer.getInstance().getLogger().log(Level.WARNING, " - bad packet ID, are mods in use!?");
+                } else if (cause instanceof IOException) {
+                    ProxyServer.getInstance().getLogger().log(Level.WARNING, " - IOException: " + cause.getMessage());
+                } else {
+                    ProxyServer.getInstance().getLogger().log(Level.SEVERE, " - encountered exception", cause);
+                }
+            }
+        }
+    };
+
     public InjectedClient(final String prefix, Channel channel) {
         this.prefix = prefix;
+
+        channel.pipeline().addBefore(PipelineUtils.BOSS_HANDLER, "tripwire-exceptionhandler", exceptionHandler);
 
         decoder = (ByteToMessageDecoder) channel.pipeline().get(PipelineUtils.PACKET_DECODER);
         encoder = (MessageToByteEncoder<DefinedPacket>) channel.pipeline().get(PipelineUtils.PACKET_ENCODER);
@@ -88,6 +113,7 @@ public class InjectedClient extends ByteToMessageDecoder {
             serverBooleanField.setAccessible(true);
             server = serverBooleanField.getBoolean(decoder);
         } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
         }
 
         try {

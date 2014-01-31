@@ -15,67 +15,6 @@ import net.cubespace.TripWire.Protocol.Packets.DefinedPacket;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 public class MetaData extends DefinedPacket {
-    public class Slot {
-        private int itemId;
-        private byte itemAmount;
-        private short itemDamageValue;
-        private short nbtOptionalLength;
-        private byte[] nbtOptionalData;
-
-        public void read(ByteBuf buf) {
-            itemId = buf.readShort();
-            if(itemId != -1) {
-                itemAmount = buf.readByte();
-                itemDamageValue = buf.readShort();
-                nbtOptionalLength = buf.readShort();
-
-                if(nbtOptionalLength != -1) {
-                    nbtOptionalData = buf.readBytes(nbtOptionalLength).array();
-                }
-            }
-        }
-
-        public void write(ByteBuf buf) {
-            buf.writeShort(itemId);
-
-            if(itemId != -1) {
-                buf.writeByte(itemAmount);
-                buf.writeShort(itemDamageValue);
-                buf.writeShort(nbtOptionalLength);
-
-                if(nbtOptionalLength != -1) {
-                    buf.writeBytes(nbtOptionalData);
-                }
-            }
-        }
-    }
-
-    public class Vector {
-        private int x;
-        private int y;
-        private int z;
-
-        public void read(ByteBuf buf) {
-            x = buf.readInt();
-            y = buf.readInt();
-            z = buf.readInt();
-        }
-
-        public void write(ByteBuf buf) {
-            buf.writeInt(x);
-            buf.writeInt(y);
-            buf.writeInt(z);
-        }
-    }
-
-    @AllArgsConstructor
-    @Data
-    public class MetadataEntry {
-        private int type;
-        private int index;
-        private Object value;
-    }
-
     private MetadataEntry[] metadata = new MetadataEntry[25];
 
     public void read(ByteBuf buf) {
