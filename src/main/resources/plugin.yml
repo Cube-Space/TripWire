@@ -1,0 +1,5 @@
+name: TripWire
+main : net.cubespace.TripWire.TripWirePlugin
+version: ${version}
+author: geNAZt
+depends: []
